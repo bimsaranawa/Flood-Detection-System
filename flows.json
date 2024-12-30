@@ -1,0 +1,574 @@
+[
+    {
+        "id": "528eb63c083773bd",
+        "type": "tab",
+        "label": "Flood Detection",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "7738ada70ad7abbf",
+        "type": "mqtt in",
+        "z": "528eb63c083773bd",
+        "name": "Flood and Rain Gauge",
+        "topic": "sensor/flood_rain",
+        "qos": "0",
+        "datatype": "auto",
+        "broker": "mqttBroker",
+        "inputs": 0,
+        "x": 340,
+        "y": 200,
+        "wires": [
+            [
+                "5c0c449d949539cf",
+                "03c8696a8ddc0df9"
+            ]
+        ]
+    },
+    {
+        "id": "e2efe0b8351b9b6f",
+        "type": "mqtt in",
+        "z": "528eb63c083773bd",
+        "name": "Temperature and Humidity",
+        "topic": "sensor/temp_humidity",
+        "qos": "0",
+        "datatype": "auto",
+        "broker": "mqttBroker",
+        "nl": false,
+        "rap": false,
+        "inputs": 0,
+        "x": 350,
+        "y": 300,
+        "wires": [
+            [
+                "478167bb0f035c7d",
+                "638ae3dc45e684c5"
+            ]
+        ]
+    },
+    {
+        "id": "5c0c449d949539cf",
+        "type": "debug",
+        "z": "528eb63c083773bd",
+        "name": "Flood/Rain Debug",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 590,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "478167bb0f035c7d",
+        "type": "debug",
+        "z": "528eb63c083773bd",
+        "name": "Temp/Humidity Debug",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "x": 590,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "1e5e3cde2767fe61",
+        "type": "ui_text",
+        "z": "528eb63c083773bd",
+        "group": "tempHumidityGroup",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "name": "Temperature Display",
+        "label": "Temperature:",
+        "format": "{{msg.payload}} C",
+        "layout": "row-spread",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": "",
+        "color": "#000000",
+        "x": 1020,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "03c8696a8ddc0df9",
+        "type": "function",
+        "z": "528eb63c083773bd",
+        "name": "Extract Values 1",
+        "func": "// Example msg.payload: \"Flood Height: 288 cm, Rain Gauge: 32 cm\"\n\n// Extract the two values using a regular expression\nlet regex = /Flood Height: (-?\\d+) cm, Rain Gauge: (-?\\d+) cm, Normal Level: (-?\\d+) cm/;\nlet matches = msg.payload.match(regex);\n\nif (matches && matches.length === 4) {\n    // Assign the extracted values to new properties\n    msg.floodHeight = parseInt(matches[1]);  // Extract Flood Height\n    msg.rainGauge = parseInt(matches[2]);    // Extract Rain Gauge\n    msg.normalLevel = parseInt(matches[3]);    // Extract Rain Gauge\n} else {\n    // Handle cases where the payload does not match expected format\n    node.error(\"Payload format is incorrect\", msg);\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 580,
+        "y": 240,
+        "wires": [
+            [
+                "49df5ec127624326",
+                "4db3c32c30c743b3",
+                "cf92a9b325dbcf07"
+            ]
+        ]
+    },
+    {
+        "id": "49df5ec127624326",
+        "type": "function",
+        "z": "528eb63c083773bd",
+        "name": "Flood Height",
+        "func": "msg.payload = msg.floodHeight;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 850,
+        "y": 140,
+        "wires": [
+            [
+                "96ef9b210b8b3405",
+                "43eb6ecce136c496"
+            ]
+        ]
+    },
+    {
+        "id": "4db3c32c30c743b3",
+        "type": "function",
+        "z": "528eb63c083773bd",
+        "name": "Rain Gauge",
+        "func": "msg.payload = msg.rainGauge;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 850,
+        "y": 200,
+        "wires": [
+            [
+                "09332eeab4ee5ce1"
+            ]
+        ]
+    },
+    {
+        "id": "638ae3dc45e684c5",
+        "type": "function",
+        "z": "528eb63c083773bd",
+        "name": "Extract Values 2",
+        "func": "// Example msg.payload: \"Flood Height: 288.5 cm, Rain Gauge: 32.75 cm\"\n\n// Updated regular expression to capture numbers with or without decimals\nlet regex = /Temperature: ([0-9]*\\.?[0-9]+) C, Humidity: ([0-9]*\\.?[0-9]+) %/;\nlet matches = msg.payload.match(regex);\n\nif (matches && matches.length === 3) {\n    // Assign the extracted values as floats (for handling decimals)\n    msg.temp = parseFloat(matches[1]);  // Extract Flood Height\n    msg.humidity = parseFloat(matches[2]);    // Extract Rain Gauge\n} else {\n    // Handle cases where the payload does not match expected format\n    node.error(\"Payload format is incorrect\", msg);\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 580,
+        "y": 360,
+        "wires": [
+            [
+                "68169218835a5646",
+                "11bf481e12a0bfe5"
+            ]
+        ]
+    },
+    {
+        "id": "68169218835a5646",
+        "type": "function",
+        "z": "528eb63c083773bd",
+        "name": "Temperature",
+        "func": "msg.payload = msg.temp;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 810,
+        "y": 340,
+        "wires": [
+            [
+                "1e5e3cde2767fe61"
+            ]
+        ]
+    },
+    {
+        "id": "11bf481e12a0bfe5",
+        "type": "function",
+        "z": "528eb63c083773bd",
+        "name": "Humidity",
+        "func": "msg.payload = msg.humidity;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 800,
+        "y": 420,
+        "wires": [
+            [
+                "4171e98ed9966fb2"
+            ]
+        ]
+    },
+    {
+        "id": "4171e98ed9966fb2",
+        "type": "ui_text",
+        "z": "528eb63c083773bd",
+        "group": "tempHumidityGroup",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "name": "Humidity",
+        "label": "Humidity:",
+        "format": "{{msg.payload}} %",
+        "layout": "row-spread",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 980,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "cf92a9b325dbcf07",
+        "type": "function",
+        "z": "528eb63c083773bd",
+        "name": "Normal Level",
+        "func": "msg.payload = msg.normalLevel;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 850,
+        "y": 260,
+        "wires": [
+            [
+                "3f422c7db8f46b4f"
+            ]
+        ]
+    },
+    {
+        "id": "3f422c7db8f46b4f",
+        "type": "ui_text",
+        "z": "528eb63c083773bd",
+        "group": "floodRainGaugeGroup",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "name": "Normal Level",
+        "label": "Normal Water Depth:",
+        "format": "{{msg.payload}} cm",
+        "layout": "row-spread",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 1030,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "96ef9b210b8b3405",
+        "type": "ui_gauge",
+        "z": "528eb63c083773bd",
+        "name": "",
+        "group": "floodRainGaugeGroup",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Flood Height",
+        "label": "cm",
+        "format": "{{value}}",
+        "min": "-20",
+        "max": "100",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "diff": false,
+        "className": "",
+        "x": 1030,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "09332eeab4ee5ce1",
+        "type": "ui_gauge",
+        "z": "528eb63c083773bd",
+        "name": "Rain Gauge",
+        "group": "floodRainGaugeGroup",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Rain Gauge",
+        "label": "cm",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "20",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "diff": false,
+        "className": "",
+        "x": 1030,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "a44fbd214bb49aaa",
+        "type": "function",
+        "z": "528eb63c083773bd",
+        "name": "Queue Flood Height",
+        "func": "let value = msg.payload; // Get the new numerical value\nlet queue = context.get('queue') || []; // Retrieve the existing queue (or initialize)\n\n// Add the new value to the queue\nqueue.push(value);\n\n// Ensure the queue length is no more than 10\nif (queue.length > 10) {\n    queue.shift(); // Remove the oldest value if more than 10\n}\n\n// Store the updated queue in the context\ncontext.set('queue', queue);\n\n// Prepare the output in the format required by the chart node\nmsg.payload = [{\n    \"series\": [\"Series 1\"],\n    \"data\": [queue],\n    \"labels\": queue.map((val, index) => index + 1) // Labels can be index or time\n}];\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1240,
+        "y": 100,
+        "wires": [
+            [
+                "19663dde87648b44",
+                "d0e524f4b369d859"
+            ]
+        ]
+    },
+    {
+        "id": "43eb6ecce136c496",
+        "type": "delay",
+        "z": "528eb63c083773bd",
+        "name": "Delay Data",
+        "pauseType": "rate",
+        "timeout": "30",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "30",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": true,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 1030,
+        "y": 80,
+        "wires": [
+            [
+                "a44fbd214bb49aaa"
+            ]
+        ]
+    },
+    {
+        "id": "19663dde87648b44",
+        "type": "ui_chart",
+        "z": "528eb63c083773bd",
+        "name": "Flood Statistics",
+        "group": "d7adb75d24ab9d6d",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "label": "Flood Height Fluctuation",
+        "chartType": "line",
+        "legend": "false",
+        "xformat": "auto",
+        "interpolate": "linear",
+        "nodata": "",
+        "dot": false,
+        "ymin": "",
+        "ymax": "",
+        "removeOlder": 1,
+        "removeOlderPoints": "",
+        "removeOlderUnit": "3600",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "className": "",
+        "x": 1480,
+        "y": 140,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "d0e524f4b369d859",
+        "type": "function",
+        "z": "528eb63c083773bd",
+        "name": "Predict Flood Height",
+        "func": "// Get the current queue of the last 10 values from the incoming message\nlet queue = msg.payload[0].data[0] || [];\n\n// Ensure the queue has at least 3 values to make a prediction\nif (queue.length >= 3) {\n    // Get the last three values\n    let lastValue = queue[queue.length - 1];\n    let secondLastValue = queue[queue.length - 2];\n    let thirdLastValue = queue[queue.length - 3];\n\n    // Calculate the growth between the last three values\n    let growth1 = lastValue - secondLastValue; // Change from second last to last\n    let growth2 = secondLastValue - thirdLastValue; // Change from third last to second last\n\n    // Average the growths to predict the next value\n    let averageGrowth = (growth1 + growth2) / 2;\n\n    // Predict the next value based on the average growth\n    let predictedValue = lastValue + averageGrowth;\n\n    // Add the predicted value to the message payload\n    msg.payload = {\n        queue: queue,                 // The current queue of values\n        predictedValue: predictedValue,  // The predicted value for the next minute\n        growth: averageGrowth         // The calculated average growth (for reference)\n    };\n} else {\n    // If not enough data, return without prediction\n    msg.payload = {\n        error: \"Not enough data to make a prediction. At least 3 values are required.\"\n    };\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1500,
+        "y": 60,
+        "wires": [
+            [
+                "0951fdfaf446699c",
+                "530545a11c97828a"
+            ]
+        ]
+    },
+    {
+        "id": "0951fdfaf446699c",
+        "type": "ui_text",
+        "z": "528eb63c083773bd",
+        "group": "9c1564e5351edfa3",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "name": "Flood Prediction",
+        "label": "Flood Height Prediction",
+        "format": "{{msg.payload.predictedValue}} cm",
+        "layout": "col-center",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 1720,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "530545a11c97828a",
+        "type": "debug",
+        "z": "528eb63c083773bd",
+        "name": "Debug Pred",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1710,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "mqttBroker",
+        "type": "mqtt-broker",
+        "name": "Public MQTT Broker",
+        "broker": "test.mosquitto.org",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "compatmode": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "tempHumidityGroup",
+        "type": "ui_group",
+        "name": "Temp/Humidity",
+        "tab": "dashboardTab",
+        "order": 2,
+        "disp": true,
+        "width": "6",
+        "collapse": false
+    },
+    {
+        "id": "floodRainGaugeGroup",
+        "type": "ui_group",
+        "name": "Flood/Rain Gauge",
+        "tab": "dashboardTab",
+        "order": 1,
+        "disp": true,
+        "width": "6",
+        "collapse": false
+    },
+    {
+        "id": "d7adb75d24ab9d6d",
+        "type": "ui_group",
+        "name": "Statistics",
+        "tab": "dashboardTab",
+        "order": 3,
+        "disp": true,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "9c1564e5351edfa3",
+        "type": "ui_group",
+        "name": "Predictions",
+        "tab": "dashboardTab",
+        "order": 4,
+        "disp": true,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "dashboardTab",
+        "type": "ui_tab",
+        "name": "Flood Detection System",
+        "icon": "dashboard",
+        "order": 1,
+        "disabled": false,
+        "hidden": false
+    }
+]
